@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Advanced Age Calculator</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #eef1f5;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 800px;
+      margin: 2rem auto;
+      background: #fff;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.1);
+    }
+    h1, h2 {
+      text-align: center;
+      color: #2c3e50;
+    }
+    input, button {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
+    button {
+      background-color: #3498db;
+      color: white;
+      border: none;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #2980b9;
+    }
+    .result {
+      margin-top: 20px;
+      padding: 15px;
+      background-color: #f4f6f8;
+      border-radius: 8px;
+      line-height: 1.6;
+    }
+    .result p {
+      margin: 8px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Advanced Age Calculator</h1>
+    <input type="text" id="dob" placeholder="Enter DOB (DD-MM-YYYY or MM/DD/YYYY)" />
+    <button onclick="startCalculation()">Calculate</button>
+    <div class="result" id="result"></div>
+
+    <h2>Age Difference Calculator</h2>
+    <input type="text" id="date1" placeholder="Start Date (DD-MM-YYYY or MM/DD/YYYY)" />
+    <input type="text" id="date2" placeholder="End Date (DD-MM-YYYY or MM/DD/YYYY)" />
+    <button onclick="calculateDifference()">Calculate Difference</button>
+    <div class="result" id="diffResult"></div>
+  </div>
+
+  <script>
+    let interval;
+
+    function parseDate(dateStr) {
+      const parts = dateStr.includes("/") ? dateStr.split("/") : dateStr.split("-");
+      if (parts[2].length === 4) {
+        const [d, m, y] = parts;
+        return new Date(y, m - 1, d);
+      } else {
+        const [m, d, y] = parts;
+        return new Date(y, m - 1, d);
+      }
+    }
+
+    function getZodiac(date) {
+      const d = date.getDate();
+      const m = date.getMonth() + 1;
+      const zodiacs = [
+        ["Capricorn", 20],["Aquarius", 19],["Pisces", 20],["Aries", 20],["Taurus", 21],
+        ["Gemini", 21],["Cancer", 23],["Leo", 23],["Virgo", 23],["Libra", 23],
+        ["Scorpio", 22],["Sagittarius", 22],["Capricorn", 31]
+      ];
+      return d < zodiacs[m - 1][1] ? zodiacs[m - 1][0] : zodiacs[m][0];
+    }
+
+    function calculate(dob) {
+      const now = new Date();
+      const diff = now - dob;
+
+      const years = now.getFullYear() - dob.getFullYear();
+      const months = now.getMonth() - dob.getMonth();
+      const days = now.getDate() - dob.getDate();
+
+      const totalSeconds = Math.floor(diff / 1000);
+      const totalMinutes = Math.floor(totalSeconds / 60);
+      const totalHours = Math.floor(totalMinutes / 60);
+      const totalDays = Math.floor(totalHours / 24);
+
+      const birthDay = dob.toLocaleDateString("en-US", { weekday: "long" });
+      const nextBirthday = new Date(now.getFullYear(), dob.getMonth(), dob.getDate());
+      if (nextBirthday < now) nextBirthday.setFullYear(now.getFullYear() + 1);
+      const daysToBirthday = Math.floor((nextBirthday - now) / (1000 * 60 * 60 * 24));
+
+      const zodiac = getZodiac(dob);
+
+      document.getElementById("result").innerHTML = `
+        <p><strong>Age:</strong> ${years} years, ${Math.abs(months)} months, ${Math.abs(days)} days</p>
+        <p><strong>Total Days:</strong> ${totalDays}</p>
+        <p><strong>Total Hours:</strong> ${totalHours}</p>
+        <p><strong>Total Minutes:</strong> ${totalMinutes}</p>
+        <p><strong>Total Seconds:</strong> ${totalSeconds}</p>
+        <p><strong>Born on:</strong> ${birthDay}</p>
+        <p><strong>Next Birthday:</strong> ${nextBirthday.toDateString()} (${daysToBirthday} days left)</p>
+        <p><strong>Zodiac Sign:</strong> ${zodiac}</p>
+      `;
+    }
+
+    function startCalculation() {
+      clearInterval(interval);
+      const dobInput = document.getElementById("dob").value;
+      const dob = parseDate(dobInput);
+      if (isNaN(dob)) {
+        alert("Invalid date format.");
+        return;
+      }
+      calculate(dob);
+      interval = setInterval(() => calculate(dob), 1000);
+    }
+
+    function calculateDifference() {
+      const date1 = parseDate(document.getElementById("date1").value);
+      const date2 = parseDate(document.getElementById("date2").value);
+      if (isNaN(date1) || isNaN(date2)) {
+        alert("Invalid date format.");
+        return;
+      }
+      let diff = Math.abs(date2 - date1);
+      const years = Math.floor(diff / (1000 * 60 * 60 * 24 * 365.25));
+      diff -= years * 1000 * 60 * 60 * 24 * 365.25;
+      const months = Math.floor(diff / (1000 * 60 * 60 * 24 * 30.44));
+      diff -= months * 1000 * 60 * 60 * 24 * 30.44;
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      document.getElementById("diffResult").innerHTML = `
+        <p><strong>Difference:</strong> ${years} years, ${months} months, ${days} days</p>
+      `;
+    }
+  </script>
+</body>
+</html>
